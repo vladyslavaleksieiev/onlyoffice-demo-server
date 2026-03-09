@@ -7,6 +7,8 @@ const path = require("path");
 const crypto = require("crypto");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
+const morgan = require("morgan");
+const { createFilesUiHandler } = require("./files-ui");
 const { Document, Packer, Paragraph } = require("docx");
 
 const app = express();
@@ -20,6 +22,11 @@ if (!fs.existsSync(FILES_DIR)) {
 }
 
 app.use(cors());
+
+const logFormat =
+  process.env.NODE_ENV === "production" ? "combined" : "dev";
+app.use(morgan(logFormat));
+
 app.use(express.json());
 
 const DOCX_MIME =
@@ -44,6 +51,38 @@ app.get("/files/:filename", (req, res) => {
   }
   res.setHeader("Content-Type", DOCX_MIME);
   res.sendFile(filePath);
+});
+
+/**
+ * GET /api/files - List files in the files directory as JSON.
+ */
+app.get("/api/files", (req, res) => {
+  try {
+    const entries = fs.readdirSync(FILES_DIR);
+    const files = entries
+      .map((name) => {
+        const filePath = path.join(FILES_DIR, name);
+        try {
+          const stat = fs.statSync(filePath);
+          if (!stat.isFile()) return null;
+          return {
+            name,
+            size: stat.size,
+            mtimeMs: stat.mtimeMs,
+            mtime: stat.mtime,
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+    res.json(files);
+  } catch (err) {
+    console.error("Error listing files:", err);
+    res.status(500).json({ error: "Failed to list files" });
+  }
 });
 
 /**
@@ -72,6 +111,11 @@ app.post("/documents", async (req, res) => {
     res.status(500).json({ error: "Failed to create document" });
   }
 });
+
+/**
+ * GET /files-ui - Simple HTML page to browse and download files.
+ */
+app.get("/files-ui", createFilesUiHandler(FILES_DIR));
 
 /**
  * GET /editor-config - OnlyOffice editor config for the given file.
