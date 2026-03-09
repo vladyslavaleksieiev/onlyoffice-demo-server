@@ -216,12 +216,16 @@ app.post("/callback", async (req, res) => {
   const sendSuccess = () => res.json({ error: 0 });
   const sendError = () => res.status(500).json({ error: 1 });
 
+  console.log('CALLBACK 1', payload, errorResponse);
+
   if (errorResponse) {
     const statusCode = Number(errorResponse.statusCode) || 500;
     return res.status(statusCode).json(errorResponse.body);
   }
 
   const { status, key, url, filetype } = payload || {};
+
+  console.log('CALLBACK 2', status, key, payload);
 
   if (status === undefined || key === undefined) {
     return sendError();
