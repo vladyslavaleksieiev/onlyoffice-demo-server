@@ -14,11 +14,17 @@ const { Document, Packer, Paragraph } = require("docx");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FILES_DIR = path.resolve(__dirname, "files");
+const PLUGINS_DIR = path.resolve(__dirname, "plugins");
 const JWT_SECRET = process.env.JWT_SECRET || process.env.ONLYOFFICE_JWT_SECRET;
 
 // Ensure files directory exists
 if (!fs.existsSync(FILES_DIR)) {
   fs.mkdirSync(FILES_DIR, { recursive: true });
+}
+
+// Ensure plugins directory exists
+if (!fs.existsSync(PLUGINS_DIR)) {
+  fs.mkdirSync(PLUGINS_DIR, { recursive: true });
 }
 
 app.use(cors());
@@ -28,6 +34,9 @@ const logFormat =
 app.use(morgan(logFormat));
 
 app.use(express.json());
+
+// Serve plugin assets statically
+app.use("/plugins", express.static(PLUGINS_DIR));
 
 const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -137,6 +146,7 @@ app.get("/editor-config", (req, res) => {
   }
 
   const documentKey = path.basename(filename, path.extname(filename)) || filename;
+  const shortcutPluginGuid = "asc.{A0B1C2D3-E4F5-6789-ABCD-EF0123456789}";
   const config = {
     documentType: 'word',
     document: {
@@ -153,10 +163,19 @@ app.get("/editor-config", (req, res) => {
     editorConfig: {
       mode: 'edit',
       callbackUrl: `${baseUrl}/callback`,
+      customization: {
+        forcesave: true,
+      },
       user: {
         id: '1',
         name: 'John Doe'
-      }
+      },
+      plugins: {
+        autostart: [shortcutPluginGuid],
+        pluginsData: [
+          `${baseUrl}/plugins/shortcut-plugin/config.json`,
+        ],
+      },
     },
   };
 
@@ -216,7 +235,7 @@ app.post("/callback", async (req, res) => {
   const sendSuccess = () => res.json({ error: 0 });
   const sendError = () => res.status(500).json({ error: 1 });
 
-  console.log('CALLBACK 1', payload, errorResponse);
+  console.log('CALLBACK', payload, errorResponse);
 
   if (errorResponse) {
     const statusCode = Number(errorResponse.statusCode) || 500;
@@ -224,8 +243,6 @@ app.post("/callback", async (req, res) => {
   }
 
   const { status, key, url, filetype } = payload || {};
-
-  console.log('CALLBACK 2', status, key, payload);
 
   if (status === undefined || key === undefined) {
     return sendError();
