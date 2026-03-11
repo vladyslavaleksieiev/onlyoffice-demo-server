@@ -1,97 +1,45 @@
-(function () {
-  var lastChars = "";
-
-  function triggerInsertVariable(source) {
-    if (typeof window.Asc === "undefined" || !window.Asc.plugin) {
-      return;
-    }
-
-    var suffix = source || "";
-    var message = "INSERT_VARIABLE:" + suffix;
-
-    if (typeof window.Asc.plugin.executeMethod === "function") {
-      window.Asc.plugin.executeMethod("ShowMessage", [message]);
-    }
-  }
-
-  function onKeyDown(e) {
-    try {
-      var isCtrlLike = !!(e.ctrlKey || e.metaKey);
-      var isDot =
-        e.key === "." ||
-        e.code === "Period" ||
-        e.keyCode === 190;
-
-      if (isCtrlLike && isDot) {
-        triggerInsertVariable("CTRL_DOT");
-
-        if (e.preventDefault) {
-          e.preventDefault();
-        }
-        e.returnValue = false;
-        return false;
-      }
-
-      if (!isCtrlLike && !e.altKey) {
-        var isLt =
-          e.key === "<" ||
-          (e.code === "Comma" && e.shiftKey) ||
-          (e.keyCode === 188 && e.shiftKey);
-
-        if (isLt) {
-          lastChars = (lastChars + "<").slice(-2);
-        } else {
-          lastChars = "";
-        }
-
-        if (lastChars === "<<") {
-          triggerInsertVariable("LT_LT");
-        }
-      }
-    } catch (err) {
-      // ignore errors inside handler
-    }
-  }
-
-  window.Asc = window.Asc || {};
-  window.Asc.plugin = window.Asc.plugin || {};
+(function (window, undefined) {
+  const PLUGIN_GUID = window.Asc.plugin.guid;
+  const MENU_ITEM_ID = "open-react-side-modal";
 
   window.Asc.plugin.init = function () {
-    if (
-      window.Asc &&
-      window.Asc.plugin &&
-      typeof window.Asc.plugin.attachEvent === "function"
-    ) {
-      window.Asc.plugin.attachEvent("onDocumentContentReady", function () {
-        if (typeof document !== "undefined") {
-          document.removeEventListener("keydown", onKeyDown, true);
-          document.addEventListener("keydown", onKeyDown, true);
-        }
-
-        if (typeof window.Asc.plugin.executeMethod === "function") {
-          window.Asc.plugin.executeMethod("ShowMessage", [
-            "Shortcut plugin mounted and ready to listen for Ctrl+. and <<",
-          ]);
-        }
-      });
-    } else if (typeof document !== "undefined") {
-      // Fallback if attachEvent is not available
-      document.addEventListener("keydown", onKeyDown, true);
+    // For newer APIs, attachEditorEvent is preferred from 8.2+
+    if (window.Asc.plugin.attachEditorEvent) {
+      window.Asc.plugin.attachEditorEvent("onContextMenuShow", onContextMenuShow);
+    } else {
+      window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
     }
   };
 
-  window.Asc.plugin.button = function () {
-    triggerInsertVariable("MANUAL");
+  function onContextMenuShow(options) {
+    // You can inspect options to show item only in certain cases
+    // e.g. text selection, image, paragraph, etc.
 
-    if (
-      window.Asc &&
-      window.Asc.plugin &&
-      typeof window.Asc.plugin.executeMethod === "function"
-    ) {
-      window.Asc.plugin.executeMethod("Close", []);
-    }
+    window.Asc.plugin.executeMethod("AddContextMenuItem", [[
+      {
+        guid: PLUGIN_GUID,
+        items: [
+          {
+            id: MENU_ITEM_ID,
+            text: "Open side modal"
+          }
+        ]
+      }
+    ]]);
+  }
+
+  window.Asc.plugin.onContextMenuClick = function (id) {
+    if (id !== MENU_ITEM_ID) return;
+
+    const payload = {
+      source: "onlyoffice-plugin",
+      type: "OPEN_REACT_MODAL",
+      data: {
+        from: "context-menu"
+      }
+    };
+
+    // send to parent page hosting the editor
+    window.parent.postMessage(payload, "*");
   };
-
-  window.Asc.plugin.onMethodReturn = function () {};
-})();
-
+})(window);
