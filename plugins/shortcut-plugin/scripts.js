@@ -9,6 +9,18 @@
     } else {
       window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
     }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "<") {
+        window.parent.postMessage({
+          source: "onlyoffice-plugin",
+          type: "KEYBOARD_SHORTCUT",
+          data: {
+            key: "keyboard-<"
+          }
+        }, "*");
+      }
+    });
   };
 
   function onContextMenuShow(options) {
