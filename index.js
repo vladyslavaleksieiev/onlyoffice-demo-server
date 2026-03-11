@@ -165,6 +165,15 @@ app.get("/editor-config", (req, res) => {
       callbackUrl: `${baseUrl}/callback`,
       customization: {
         forcesave: true,
+        toolbarNoTabs: false,
+        layout: {
+          toolbar: {
+            collaboration: false,
+            protect: false,
+            view: false,
+            ai: false,
+          },
+        },
       },
       user: {
         id: '1',

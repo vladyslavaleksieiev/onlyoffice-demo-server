@@ -22,6 +22,9 @@
         "word"
       ],
       "isVisual": false,
+      "events": [
+        "onContextMenuShow"
+      ],
       "initDataType": "none",
       "initData": ""
     }

@@ -3,11 +3,7 @@
   const MENU_ITEM_ID = "open-react-side-modal";
 
   window.Asc.plugin.init = function () {
-    if (window.Asc.plugin.attachEditorEvent) {
-      window.Asc.plugin.attachEditorEvent("onContextMenuShow", onContextMenuShow);
-    } else {
-      window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
-    }
+    window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
   };
 
   function onContextMenuShow(options) {
