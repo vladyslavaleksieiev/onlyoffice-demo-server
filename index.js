@@ -56,7 +56,7 @@ app.use((req, res, next) => {
         data: { method: req.method, path: req.path },
         timestamp: Date.now(),
       }),
-    }).catch(() => {});
+    }).catch(() => { });
   } catch {
     // swallow logging errors
   }
@@ -361,6 +361,33 @@ app.post("/callback", async (req, res) => {
 
   // Status 1, 4, etc. - acknowledge without saving
   return sendSuccess();
+});
+
+/**
+ * POST /force-save - Force save the document.
+ * Query: documentKey (required).
+ * Returns the response from the force save command.
+ */
+app.post("/force-save", async (req, res) => {
+  const { documentKey } = req.body;
+
+  const response = await fetch(
+    `${process.env.DOCUMENT_SERVER_URL}/coauthoring/CommandService.ashx`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + JWT_SECRET
+      },
+      body: JSON.stringify({
+        c: "forcesave",
+        key: documentKey
+      })
+    }
+  );
+
+  const data = await response.json();
+  res.json(data);
 });
 
 app.listen(PORT, () => {
