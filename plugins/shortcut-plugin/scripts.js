@@ -21,11 +21,11 @@
   window.Asc.plugin.init = function () {
     console.log("plugin init", this.guid);
 
-    window.Asc.attachEditorEvent("onContextMenuClick", () => {
+    window.Asc.plugin.attachEditorEvent("onContextMenuClick", () => {
       console.log("onContextMenuClick init");
     })
 
-    window.Asc.attachEditorEvent("onContextMenuShow", () => {
+    window.Asc.plugin.attachEditorEvent("onContextMenuShow", () => {
       console.log("onContextMenuShow init");
     })
 
