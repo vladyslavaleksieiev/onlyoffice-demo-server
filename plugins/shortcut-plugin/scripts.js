@@ -22,13 +22,12 @@
     console.log("plugin init", this.guid);
 
     window.Asc.plugin.attachEditorEvent("onContextMenuClick", () => {
-      console.log("onContextMenuClick init");
       postToParent({
         source: "onlyoffice-plugin",
         type: "OPEN_REACT_MODAL",
         data: {
           from: "context-menu",
-          itemData: data
+          itemData: { type: 'insertVariableMenuItemClick' }
         }
       })
     })
@@ -41,13 +40,7 @@
           items: [
             {
               id: MENU_ITEM_ID,
-              text: "Insert variable",
-              items: [
-                {
-                  id: 'insertVariable',
-                  text: 'Insert variable',
-                }
-              ]
+              text: "Insert variable"
             }
           ]
         }
