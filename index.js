@@ -134,6 +134,9 @@ app.get("/files-ui", createFilesUiHandler(FILES_DIR));
 app.get("/editor-config", (req, res) => {
   const filename = req.query.filename;
   const baseUrl = (req.query.baseUrl || "").replace(/\/$/, "") || process.env.PUBLIC_URL || `http://localhost:${PORT}`;
+  const rawTheme =
+    typeof req.query.theme === "string" ? req.query.theme.toLowerCase() : "";
+  const theme = rawTheme === "dark" ? "dark" : "light";
 
   if (!filename || typeof filename !== "string" || filename.includes("..") || path.isAbsolute(filename)) {
     return res.status(400).json({ error: "Invalid or missing filename" });
@@ -163,6 +166,7 @@ app.get("/editor-config", (req, res) => {
     editorConfig: {
       mode: 'edit',
       callbackUrl: `${baseUrl}/callback`,
+      uiTheme: theme,
       customization: {
         forcesave: true,
         toolbarNoTabs: false,

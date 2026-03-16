@@ -1,32 +1,27 @@
 {
   "name": "Shortcut notifier",
   "guid": "asc.{A0B1C2D3-E4F5-6789-ABCD-EF0123456789}",
-  "version": "1.0.3",
-  "events": [
-    "onDocumentContentReady",
-    "onContextMenuShow"
-  ],
-  "icons": [
-    "icons/icon16.png",
-    "icons/icon32.png",
-    "icons/icon64.png"
-  ],
+  "version": "1.0.0",
   "variations": [
     {
       "description": "Shortcut notifier",
-      "url": "index.html?v=1.0.3",
+      "url": "index.html",
       "type": "background",
-      "icons": "icons/icon16.png",
-      "isViewer": true,
+      "icons": [
+        "icons/icon16.png",
+        "icons/icon32.png"
+      ],
+      "isViewer": false,
       "EditorsSupport": [
         "word"
       ],
       "isVisual": false,
+      "initDataType": "none",
+      "initData": "",
+      "buttons": [],
       "events": [
         "onContextMenuShow"
-      ],
-      "initDataType": "none",
-      "initData": ""
+      ]
     }
   ]
 }

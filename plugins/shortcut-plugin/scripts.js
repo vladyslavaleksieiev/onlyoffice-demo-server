@@ -1,19 +1,42 @@
-(function (window, undefined) {
-  let PLUGIN_GUID;
+(function (window) {
+  "use strict";
+
   const MENU_ITEM_ID = "open-react-side-modal";
 
-  window.Asc.plugin.init = function () {
-    PLUGIN_GUID = window.Asc.plugin.guid;
+  function postToParent(message) {
+    try {
+      window.parent.postMessage(message, "*");
+    } catch (error) {
+      console.error("Failed to post message to parent", error);
+    }
+  }
 
-    alert("init");
-    console.log("init");
-    window.parent.postMessage({ type: 'init', data: { guid: PLUGIN_GUID } }, "*");
-    window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
+  if (!window.Asc || !window.Asc.plugin) {
+    console.error("ONLYOFFICE plugin API is not available");
+    return;
+  }
+
+  window.Asc.plugin.init = function () {
+    console.log("Shortcut notifier plugin initialized", this.guid);
+
+    postToParent({
+      source: "onlyoffice-plugin",
+      type: "PLUGIN_INIT",
+      data: {
+        guid: this.guid
+      }
+    });
   };
 
-  function onContextMenuShow(options) {
+  window.Asc.plugin.button = function () {
+    this.executeCommand("close", "");
+  };
+
+  window.Asc.plugin.event_onContextMenuShow = function (options) {
+    console.log("onContextMenuShow", options);
+
     const items = {
-      guid: PLUGIN_GUID,
+      guid: this.guid,
       items: [
         {
           id: MENU_ITEM_ID,
@@ -23,21 +46,18 @@
       ]
     };
 
-    window.Asc.plugin.executeMethod("AddContextMenuItem", [items]);
-  }
+    this.executeMethod("AddContextMenuItem", [items]);
+  };
 
-  window.Asc.plugin.onContextMenuClick = function (id) {
-    if (id !== MENU_ITEM_ID) return;
+  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function () {
+    console.log("Context menu item clicked:", MENU_ITEM_ID);
 
-    const payload = {
+    postToParent({
       source: "onlyoffice-plugin",
       type: "OPEN_REACT_MODAL",
       data: {
         from: "context-menu"
       }
-    };
-
-    // send to parent page hosting the editor
-    window.parent.postMessage(payload, "*");
-  };
+    });
+  });
 })(window);
