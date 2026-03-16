@@ -23,71 +23,39 @@
 
     window.Asc.plugin.attachEditorEvent("onContextMenuClick", () => {
       console.log("onContextMenuClick init");
+      postToParent({
+        source: "onlyoffice-plugin",
+        type: "OPEN_REACT_MODAL",
+        data: {
+          from: "context-menu",
+          itemData: data
+        }
+      })
     })
 
-    window.Asc.plugin.attachEditorEvent("onContextMenuShow", () => {
-      console.log("onContextMenuShow init");
+    window.Asc.plugin.attachEditorEvent("onContextMenuShow", function () {
+      console.log("onContextMenuShow");
+      this.executeMethod("AddContextMenuItem", [
+        {
+          guid: this.guid,
+          items: [
+            {
+              id: MENU_ITEM_ID,
+              text: "Insert variable",
+              items: [
+                {
+                  id: 'insertVariable',
+                  text: 'Insert variable',
+                }
+              ]
+            }
+          ]
+        }
+      ]);
     })
 
     this.executeMethod("GetVersion", [], function (version) {
       console.log("ONLYOFFICE version:", version);
     });
-  };
-
-  window.Asc.plugin.button = function () {
-    this.executeCommand("close", "");
-  };
-
-  window.Asc.plugin.event_onContextMenuShow = function (options) {
-    console.log("onContextMenuShow", options);
-
-    this.executeMethod("AddContextMenuItem", [
-      {
-        guid: this.guid,
-        items: [
-          {
-            id: MENU_ITEM_ID,
-            text: "Insert variable",
-            items: [
-              {
-                id: 'insertVariable',
-                text: 'Insert variable',
-              }
-            ]
-          }
-        ]
-      }
-    ]);
-  };
-
-  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function (data) {
-    console.log("Context menu item clicked", data);
-
-    postToParent({
-      source: "onlyoffice-plugin",
-      type: "OPEN_REACT_MODAL",
-      data: {
-        from: "context-menu",
-        itemData: data
-      }
-    });
-  });
-
-  window.Asc.plugin.event_onContextMenuClick = function (id) {
-    console.log("event_onContextMenuClick", id);
-
-    const pluginObj = window.Asc.plugin;
-    let itemId = id;
-    let itemData;
-
-    const itemPos = itemId.indexOf("_oo_sep_");
-    if (itemPos !== -1) {
-      itemData = itemId.slice(itemPos + 8);
-      itemId = itemId.slice(0, itemPos);
-    }
-
-    if (pluginObj.contextMenuEvents && pluginObj.contextMenuEvents[itemId]) {
-      pluginObj.contextMenuEvents[itemId].call(pluginObj, itemData);
-    }
   };
 })(window);
