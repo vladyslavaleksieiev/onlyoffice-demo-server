@@ -18,11 +18,10 @@
 
   console.log("plugin script loaded");
 
-
   window.Asc.plugin.init = function () {
     console.log("plugin init", this.guid);
 
-    window.Asc.plugin.executeMethod("GetVersion", [], function (version) {
+    this.executeMethod("GetVersion", [], function (version) {
       console.log("ONLYOFFICE version:", version);
     });
   };
@@ -39,24 +38,48 @@
         guid: this.guid,
         items: [
           {
-            id: "openReactSideModal",
-            text: "Open side modal"
+            id: MENU_ITEM_ID,
+            text: "Insert variable",
+            items: [
+              {
+                id: 'insertVariable',
+                text: 'Insert variable',
+              }
+            ]
           }
         ]
       }
     ]);
   };
 
-  window.Asc.plugin.attachContextMenuClickEvent("openReactSideModal", () => {
-    console.log("Context menu item clicked");
+  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function (data) {
+    console.log("Context menu item clicked", data);
 
     postToParent({
       source: "onlyoffice-plugin",
       type: "OPEN_REACT_MODAL",
       data: {
         from: "context-menu",
-        itemData: "test"
+        itemData: data
       }
     });
   });
+
+  window.Asc.plugin.event_onContextMenuClick = function (id) {
+    console.log("event_onContextMenuClick", id);
+
+    const pluginObj = window.Asc.plugin;
+    let itemId = id;
+    let itemData;
+
+    const itemPos = itemId.indexOf("_oo_sep_");
+    if (itemPos !== -1) {
+      itemData = itemId.slice(itemPos + 8);
+      itemId = itemId.slice(0, itemPos);
+    }
+
+    if (pluginObj.contextMenuEvents && pluginObj.contextMenuEvents[itemId]) {
+      pluginObj.contextMenuEvents[itemId].call(pluginObj, itemData);
+    }
+  };
 })(window);
