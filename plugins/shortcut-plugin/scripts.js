@@ -41,8 +41,7 @@
         items: [
           {
             id: MENU_ITEM_ID,
-            text: "Insert Variable",
-            items: []
+            text: "Insert Variable"
           }
         ]
       }
@@ -63,6 +62,7 @@
   });
 
   window.Asc.plugin.event_onContextMenuClick = function (id) {
+    console.log("onContextMenuClick", id);
     const pluginObj = window.Asc.plugin;
     let itemId = id;
     let itemData;
