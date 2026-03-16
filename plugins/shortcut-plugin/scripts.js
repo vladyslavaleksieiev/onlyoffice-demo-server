@@ -34,7 +34,7 @@
         guid: this.guid,
         items: [
           {
-            id: MENU_ITEM_ID,
+            id: "openReactSideModal",
             text: "Open side modal"
           }
         ]
@@ -42,15 +42,15 @@
     ]);
   };
 
-  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function (data) {
-    console.log("Context menu item clicked", data);
+  window.Asc.plugin.attachContextMenuClickEvent("openReactSideModal", () => {
+    console.log("Context menu item clicked");
 
     postToParent({
       source: "onlyoffice-plugin",
       type: "OPEN_REACT_MODAL",
       data: {
         from: "context-menu",
-        itemData: data
+        itemData: "test"
       }
     });
   });
