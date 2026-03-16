@@ -136,7 +136,7 @@ app.get("/editor-config", (req, res) => {
   const baseUrl = (req.query.baseUrl || "").replace(/\/$/, "") || process.env.PUBLIC_URL || `http://localhost:${PORT}`;
   const rawTheme =
     typeof req.query.theme === "string" ? req.query.theme.toLowerCase() : "";
-  const theme = rawTheme === "dark" ? "dark" : "light";
+  const theme = rawTheme === "dark" ? "theme-dark" : "theme-light";
   const rawName =
     typeof req.query.name === "string" ? req.query.name.trim() : "";
   const userName = rawName || "Guest";
@@ -161,9 +161,13 @@ app.get("/editor-config", (req, res) => {
       title: filename,
       url: `${baseUrl}/files/${encodeURIComponent(filename)}`,
       permissions: {
+        chat: false,
         edit: true,
         download: true,
         print: true,
+        protect: false,
+        review: false,
+
       },
     },
     editorConfig: {
@@ -172,7 +176,8 @@ app.get("/editor-config", (req, res) => {
       uiTheme: theme,
       customization: {
         forcesave: true,
-        toolbarNoTabs: false,
+        comments: false,
+        toolbarHideFileName: true,
         layout: {
           toolbar: {
             collaboration: false,
