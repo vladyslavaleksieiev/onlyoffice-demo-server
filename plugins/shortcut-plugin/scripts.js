@@ -3,6 +3,9 @@
   const MENU_ITEM_ID = "open-react-side-modal";
 
   window.Asc.plugin.init = function () {
+    alert("init");
+    console.log("init");
+    window.parent.postMessage({ type: 'init', data: { guid: PLUGIN_GUID } }, "*");
     window.Asc.plugin.attachEvent("onContextMenuShow", onContextMenuShow);
   };
 
