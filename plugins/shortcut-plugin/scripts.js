@@ -1,7 +1,7 @@
 (function (window) {
   "use strict";
 
-  const MENU_ITEM_ID = "open-react-side-modal";
+  const MENU_ITEM_ID = "openReactSideModal";
 
   function postToParent(message) {
     try {
@@ -16,16 +16,10 @@
     return;
   }
 
-  window.Asc.plugin.init = function () {
-    console.log("Shortcut notifier plugin initialized", this.guid);
+  console.log("plugin script loaded");
 
-    postToParent({
-      source: "onlyoffice-plugin",
-      type: "PLUGIN_INIT",
-      data: {
-        guid: this.guid
-      }
-    });
+  window.Asc.plugin.init = function () {
+    console.log("plugin init", this.guid);
   };
 
   window.Asc.plugin.button = function () {
@@ -41,7 +35,7 @@
         items: [
           {
             id: MENU_ITEM_ID,
-            text: "Insert Variable"
+            text: "Open side modal"
           }
         ]
       }
@@ -49,7 +43,7 @@
   };
 
   window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function (data) {
-    console.log("Context menu item clicked:", MENU_ITEM_ID, data);
+    console.log("Context menu item clicked", data);
 
     postToParent({
       source: "onlyoffice-plugin",
@@ -60,21 +54,4 @@
       }
     });
   });
-
-  window.Asc.plugin.event_onContextMenuClick = function (id) {
-    console.log("onContextMenuClick", id);
-    const pluginObj = window.Asc.plugin;
-    let itemId = id;
-    let itemData;
-
-    const itemPos = itemId.indexOf("_oo_sep_");
-    if (itemPos !== -1) {
-      itemData = itemId.slice(itemPos + 8);
-      itemId = itemId.slice(0, itemPos);
-    }
-
-    if (pluginObj.contextMenuEvents && pluginObj.contextMenuEvents[itemId]) {
-      pluginObj.contextMenuEvents[itemId].call(pluginObj, itemData);
-    }
-  };
 })(window);
