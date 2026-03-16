@@ -1,8 +1,10 @@
 (function (window, undefined) {
-  const PLUGIN_GUID = window.Asc.plugin.guid;
+  let PLUGIN_GUID;
   const MENU_ITEM_ID = "open-react-side-modal";
 
   window.Asc.plugin.init = function () {
+    PLUGIN_GUID = window.Asc.plugin.guid;
+
     alert("init");
     console.log("init");
     window.parent.postMessage({ type: 'init', data: { guid: PLUGIN_GUID } }, "*");
