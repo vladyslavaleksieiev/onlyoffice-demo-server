@@ -18,8 +18,13 @@
 
   console.log("plugin script loaded");
 
+
   window.Asc.plugin.init = function () {
     console.log("plugin init", this.guid);
+
+    window.Asc.plugin.executeMethod("GetVersion", [], function (version) {
+      console.log("ONLYOFFICE version:", version);
+    });
   };
 
   window.Asc.plugin.button = function () {
