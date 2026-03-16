@@ -4,6 +4,7 @@
   const MENU_ITEM_ID = "openReactSideModal";
 
   function postToParent(message) {
+    console.log("postToParent", message);
     try {
       window.parent.postMessage(message, "*");
     } catch (error) {
@@ -20,8 +21,16 @@
 
   window.Asc.plugin.init = function () {
     console.log("plugin init", this.guid);
+    postToParent({
+      source: "onlyoffice-plugin",
+      type: "PLUGIN_INIT",
+      data: {
+        guid: this.guid,
+      }
+    })
 
     window.Asc.plugin.attachEditorEvent("onContextMenuClick", () => {
+      console.log("onContextMenuClick");
       postToParent({
         source: "onlyoffice-plugin",
         type: "OPEN_REACT_MODAL",
