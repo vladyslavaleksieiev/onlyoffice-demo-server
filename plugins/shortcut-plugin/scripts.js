@@ -5,8 +5,11 @@
 
   function postToParent(message) {
     console.log("postToParent", message);
+    console.log("self === parent", window === window.parent);
+    console.log("parent === top", window.parent === window.top);
+    console.log("referrer", document.referrer);
     try {
-      window.parent.postMessage(message, "*");
+      window.top.postMessage(message, "*");
     } catch (error) {
       console.error("Failed to post message to parent", error);
     }
