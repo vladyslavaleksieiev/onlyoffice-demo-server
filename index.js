@@ -137,6 +137,9 @@ app.get("/editor-config", (req, res) => {
   const rawTheme =
     typeof req.query.theme === "string" ? req.query.theme.toLowerCase() : "";
   const theme = rawTheme === "dark" ? "dark" : "light";
+  const rawName =
+    typeof req.query.name === "string" ? req.query.name.trim() : "";
+  const userName = rawName || "Guest";
 
   if (!filename || typeof filename !== "string" || filename.includes("..") || path.isAbsolute(filename)) {
     return res.status(400).json({ error: "Invalid or missing filename" });
@@ -180,8 +183,8 @@ app.get("/editor-config", (req, res) => {
         },
       },
       user: {
-        id: '1',
-        name: 'John Doe'
+        id: userName,
+        name: userName
       },
       plugins: {
         autostart: [shortcutPluginGuid],

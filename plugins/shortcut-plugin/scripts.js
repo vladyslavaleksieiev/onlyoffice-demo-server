@@ -35,29 +35,46 @@
   window.Asc.plugin.event_onContextMenuShow = function (options) {
     console.log("onContextMenuShow", options);
 
-    const items = {
-      guid: this.guid,
-      items: [
-        {
-          id: MENU_ITEM_ID,
-          text: "Open side modal",
-          icons: "icons/icon16.png"
-        }
-      ]
-    };
-
-    this.executeMethod("AddContextMenuItem", [items]);
+    this.executeMethod("AddContextMenuItem", [
+      {
+        guid: this.guid,
+        items: [
+          {
+            id: MENU_ITEM_ID,
+            text: "Insert Variable",
+            items: []
+          }
+        ]
+      }
+    ]);
   };
 
-  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function () {
-    console.log("Context menu item clicked:", MENU_ITEM_ID);
+  window.Asc.plugin.attachContextMenuClickEvent(MENU_ITEM_ID, function (data) {
+    console.log("Context menu item clicked:", MENU_ITEM_ID, data);
 
     postToParent({
       source: "onlyoffice-plugin",
       type: "OPEN_REACT_MODAL",
       data: {
-        from: "context-menu"
+        from: "context-menu",
+        itemData: data
       }
     });
   });
+
+  window.Asc.plugin.event_onContextMenuClick = function (id) {
+    const pluginObj = window.Asc.plugin;
+    let itemId = id;
+    let itemData;
+
+    const itemPos = itemId.indexOf("_oo_sep_");
+    if (itemPos !== -1) {
+      itemData = itemId.slice(itemPos + 8);
+      itemId = itemId.slice(0, itemPos);
+    }
+
+    if (pluginObj.contextMenuEvents && pluginObj.contextMenuEvents[itemId]) {
+      pluginObj.contextMenuEvents[itemId].call(pluginObj, itemData);
+    }
+  };
 })(window);
