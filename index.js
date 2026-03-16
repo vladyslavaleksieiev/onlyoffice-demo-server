@@ -362,35 +362,38 @@ app.post("/callback", async (req, res) => {
 });
 
 /**
- * POST /force-save - Force save the document.
- * Query: documentKey (required), documentServerUrl (optional)
- * Returns the response from the force save command.
+ * POST /force-download - Force download the document.
+ * Query: downloadUrl (required)
+ * Returns the document as a buffer.
  */
-app.post("/force-save", async (req, res) => {
-  const { documentKey, documentServerUrl } = req.body || {};
+app.post("/force-download", async (req, res) => {
+  try {
+    const { downloadUrl } = req.body;
 
-  const baseUrl = documentServerUrl || process.env.DOCUMENT_SERVER_URL;
-  if (!documentKey || !baseUrl) {
-    return res.status(400).json({ error: "Missing documentKey or documentServerUrl" });
-  }
+    const response = await fetch(downloadUrl);
 
-  const response = await fetch(
-    `${baseUrl}/coauthoring/CommandService.ashx`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + JWT_SECRET,
-      },
-      body: JSON.stringify({
-        c: "forcesave",
-        key: documentKey,
-      }),
+    if (!response.ok) {
+      return res.status(502).json({
+        error: "Failed to fetch file from downloadUrl",
+        status: response.status,
+      });
     }
-  );
 
-  const data = await response.json();
-  res.json(data);
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    const filename = `download-${Date.now()}.docx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("force-download failed", error);
+    res.status(500).json({ error: "Failed to download file" });
+  }
 });
 
 app.listen(PORT, () => {
