@@ -21,6 +21,14 @@
   window.Asc.plugin.init = function () {
     console.log("plugin init", this.guid);
 
+    window.Asc.attachEditorEvent("onContextMenuClick", () => {
+      console.log("onContextMenuClick init");
+    })
+
+    window.Asc.attachEditorEvent("onContextMenuShow", () => {
+      console.log("onContextMenuShow init");
+    })
+
     this.executeMethod("GetVersion", [], function (version) {
       console.log("ONLYOFFICE version:", version);
     });

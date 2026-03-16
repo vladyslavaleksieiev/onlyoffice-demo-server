@@ -18,10 +18,7 @@
       "isVisual": false,
       "initDataType": "none",
       "initData": "",
-      "buttons": [],
-      "events": [
-        "onContextMenuShow"
-      ]
+      "buttons": []
     }
   ]
 }
