@@ -383,10 +383,7 @@ app.post("/force-download", async (req, res) => {
 
     const filename = `download-${Date.now()}.docx`;
 
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
+    res.setHeader("Content-Type", DOCX_MIME);
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
 
     res.send(buffer);
