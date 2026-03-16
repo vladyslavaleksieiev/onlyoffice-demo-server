@@ -1,0 +1,419 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OnlyOffice Demo Server API",
+    "version": "1.0.0",
+    "description": "API for managing DOCX files and OnlyOffice editor configuration in the OnlyOffice demo server."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development (default PORT)"
+    }
+  ],
+  "paths": {
+    "/files/{filename}": {
+      "get": {
+        "summary": "Download a DOCX file",
+        "description": "Serves a DOCX document from the `files` directory. The filename must be a simple file name without path segments.",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "description": "Name of the DOCX file to download (e.g. `abc123.docx`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested DOCX file.",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filename (e.g. contains path traversal).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files": {
+      "get": {
+        "summary": "List available files",
+        "description": "Returns metadata for all files in the `files` directory, sorted by modification time (newest first).",
+        "responses": {
+          "200": {
+            "description": "List of files.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to list files.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents": {
+      "post": {
+        "summary": "Create a new document",
+        "description": "Creates a new DOCX document in the `files` directory.\n\n- If the request is sent without a body or as JSON, the server creates an empty DOCX document.\n- If the request is `multipart/form-data` and includes a `file` field containing a DOCX file, the server stores that uploaded file instead.\n\nIn both cases a random filename is generated and returned.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional DOCX file to use as the initial document content."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentCreatedResponse"
+                },
+                "examples": {
+                  "created": {
+                    "summary": "Example response",
+                    "value": {
+                      "filename": "a1b2c3d4e5f6g7h8.docx"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid uploaded file (e.g. wrong type or empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files-ui": {
+      "get": {
+        "summary": "Browse files in a simple UI",
+        "description": "Returns an HTML page that lists files in the `files` directory and lets you download them.",
+        "responses": {
+          "200": {
+            "description": "HTML page with file browser.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/editor-config": {
+      "get": {
+        "summary": "Get OnlyOffice editor configuration",
+        "description": "Returns the OnlyOffice editor configuration JSON for a given filename. This config can be passed directly to the OnlyOffice Document Editor.\n\nThe file must already exist in the `files` directory.",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "description": "Name of the DOCX file in the `files` directory.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "baseUrl",
+            "in": "query",
+            "required": false,
+            "description": "Base URL used to construct document URLs and callback URL (defaults to server URL).",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "required": false,
+            "description": "Editor theme, `dark` or `light` (defaults to light).",
+            "schema": {
+              "type": "string",
+              "enum": ["dark", "light"]
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "description": "Display name for the user inside the editor (defaults to `Guest`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editor configuration returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorConfigResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing filename.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/callback": {
+      "post": {
+        "summary": "OnlyOffice save callback",
+        "description": "Callback endpoint invoked by OnlyOffice Document Server when a document should be saved.\n\nWhen the callback status is `2` (document ready for saving) or `6` (force save), the server downloads the document from the provided `url` and overwrites the corresponding file in the `files` directory.\n\nIf JWT is enabled via `JWT_SECRET`, the callback payload may be wrapped and verified before processing.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallbackPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Callback processed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallbackResponse"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Callback rejected due to JWT verification or invalid payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallbackResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Internal error while processing callback or saving file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallbackResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Error message describing what went wrong."
+              },
+              {
+                "type": "number",
+                "description": "Numeric error code used in some callbacks."
+              }
+            ]
+          }
+        },
+        "required": ["error"]
+      },
+      "FileInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "File name, e.g. `abc123.docx`."
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size of the file in bytes."
+          },
+          "mtimeMs": {
+            "type": "number",
+            "description": "Last modification time in milliseconds since the UNIX epoch."
+          },
+          "mtime": {
+            "type": "string",
+            "description": "Last modification time as a string."
+          }
+        },
+        "required": ["name", "size", "mtimeMs", "mtime"]
+      },
+      "DocumentCreatedResponse": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Randomly generated DOCX filename stored in the `files` directory."
+          }
+        },
+        "required": ["filename"]
+      },
+      "EditorConfigResponse": {
+        "type": "object",
+        "description": "OnlyOffice editor configuration object.",
+        "properties": {
+          "documentType": {
+            "type": "string",
+            "example": "word"
+          },
+          "document": {
+            "type": "object"
+          },
+          "editorConfig": {
+            "type": "object"
+          },
+          "token": {
+            "type": "string",
+            "description": "Optional JWT token used by OnlyOffice when JWT is enabled."
+          }
+        },
+        "required": ["documentType", "document", "editorConfig"]
+      },
+      "CallbackPayload": {
+        "type": "object",
+        "description": "Payload from OnlyOffice Document Server callback. May be wrapped in a JWT when JWT is enabled.",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Document status code (e.g. 2 for ready to save, 6 for force save)."
+          },
+          "key": {
+            "type": "string",
+            "description": "Unique document identifier used as part of the filename."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL from which the updated document can be downloaded."
+          },
+          "filetype": {
+            "type": "string",
+            "description": "File type/extension (e.g. `docx`)."
+          },
+          "token": {
+            "type": "string",
+            "description": "Optional JWT token if callbacks are secured with JWT."
+          }
+        },
+        "required": ["status", "key"]
+      },
+      "CallbackResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "integer",
+            "description": "0 on success, 1 on failure."
+          }
+        },
+        "required": ["error"]
+      }
+    }
+  }
+}
+
