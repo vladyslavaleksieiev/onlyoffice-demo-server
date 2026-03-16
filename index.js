@@ -317,8 +317,6 @@ app.post("/callback", async (req, res) => {
   const sendSuccess = () => res.json({ error: 0 });
   const sendError = () => res.status(500).json({ error: 1 });
 
-  console.log('CALLBACK', payload, errorResponse);
-
   if (errorResponse) {
     const statusCode = Number(errorResponse.statusCode) || 500;
     return res.status(statusCode).json(errorResponse.body);
@@ -365,24 +363,29 @@ app.post("/callback", async (req, res) => {
 
 /**
  * POST /force-save - Force save the document.
- * Query: documentKey (required).
+ * Query: documentKey (required), documentServerUrl (optional)
  * Returns the response from the force save command.
  */
 app.post("/force-save", async (req, res) => {
-  const { documentKey } = req.body;
+  const { documentKey, documentServerUrl } = req.body || {};
+
+  const baseUrl = documentServerUrl || process.env.DOCUMENT_SERVER_URL;
+  if (!documentKey || !baseUrl) {
+    return res.status(400).json({ error: "Missing documentKey or documentServerUrl" });
+  }
 
   const response = await fetch(
-    `${process.env.DOCUMENT_SERVER_URL}/coauthoring/CommandService.ashx`,
+    `${baseUrl}/coauthoring/CommandService.ashx`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + JWT_SECRET
+        "Authorization": "Bearer " + JWT_SECRET,
       },
       body: JSON.stringify({
         c: "forcesave",
-        key: documentKey
-      })
+        key: documentKey,
+      }),
     }
   );
 

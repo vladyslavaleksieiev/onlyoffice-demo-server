@@ -299,6 +299,69 @@
           }
         }
       }
+    },
+    "/force-save": {
+      "post": {
+        "summary": "Force save a document",
+        "description": "Issues a force-save command for an existing document via OnlyOffice Document Server's CommandService. The server forwards the request to the configured Document Server and returns its JSON response.\n\nIf `documentServerUrl` is not provided in the request body, the server falls back to the `DOCUMENT_SERVER_URL` environment variable.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForceSaveRequest"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Force save using default DOCUMENT_SERVER_URL",
+                  "value": {
+                    "documentKey": "a1b2c3d4e5f6g7h8"
+                  }
+                },
+                "withCustomServer": {
+                  "summary": "Force save using an explicit Document Server URL",
+                  "value": {
+                    "documentKey": "a1b2c3d4e5f6g7h8",
+                    "documentServerUrl": "http://localhost:8080"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Force save command executed successfully. The exact structure depends on OnlyOffice Document Server's CommandService response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForceSaveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid `documentKey` or unable to resolve Document Server URL.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Internal error while sending the force-save command or processing the response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -412,6 +475,27 @@
           }
         },
         "required": ["error"]
+      },
+      "ForceSaveRequest": {
+        "type": "object",
+        "description": "Request body for issuing a force-save command for a document.",
+        "properties": {
+          "documentKey": {
+            "type": "string",
+            "description": "OnlyOffice document key used to identify the document to force save (usually derived from the filename without extension)."
+          },
+          "documentServerUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional OnlyOffice Document Server base URL. If omitted, the server uses the `DOCUMENT_SERVER_URL` environment variable."
+          }
+        },
+        "required": ["documentKey"]
+      },
+      "ForceSaveResponse": {
+        "type": "object",
+        "description": "Raw JSON response returned by OnlyOffice Document Server's CommandService `forcesave` command. The exact shape may vary depending on the server configuration and version.",
+        "additionalProperties": true
       }
     }
   }
